@@ -15,7 +15,8 @@ if (params.help) {
 }
 
 process CONCATENATE {
-
+    label 'generic'
+    
     tag {sample_id}
 
     conda projectDir + '/env/conda-env.yml'
@@ -41,7 +42,8 @@ process CONCATENATE {
 }
 
 process DEHUMAN {
-
+    label 'generic'
+    
     tag {sample_id}
 
     conda projectDir + '/env/conda-env.yml'
@@ -68,8 +70,10 @@ process DEHUMAN {
 }
 
 process FILTER_BY_LENGTH {
+    label 'generic'
 
     tag {sample_id}
+    
     conda projectDir + '/env/conda-env.yml'
 
     cpus 4
@@ -96,6 +100,8 @@ process FILTER_BY_LENGTH {
 }
 
 process FILTER_BY_TIME {
+    label 'generic'
+
     tag {sample_id}
 
     conda projectDir + '/env/conda-env.yml'
@@ -120,8 +126,10 @@ process FILTER_BY_TIME {
 }
 
 process DEHUMAN2 {
+    label 'generic'
 
     tag {sample_id}
+
     conda projectDir + '/env/conda-env.yml'
 
     cpus 6
@@ -152,15 +160,16 @@ process DEHUMAN2 {
 }
 
 process MINIMAP2_PAF {
+    label 'generic'
 
     tag {sample_id}
 
     conda projectDir + '/env/conda-env.yml'
 
     cpus 14
-
-    memory '64.GB'
-
+    memory { task.attempt > 1 ? task.previousTrace.memory * 2 : (96.GB) }
+    errorStrategy { task.exitStatus in 137..140 ? 'retry' : 'terminate' }
+    maxRetries 3
 
     input:
         tuple val(sample_id), path(reads)
@@ -183,6 +192,7 @@ process MINIMAP2_PAF {
 }
 
 process AMR {
+    label 'generic'
 
     tag {sample_id}
 
@@ -213,7 +223,8 @@ process AMR {
 
 
 process MINIMAP2_SAM {
-
+    label 'generic'
+    
     tag {sample_id}
 
     cpus 32
@@ -240,6 +251,7 @@ process MINIMAP2_SAM {
 }
 
 process CLEAN_PAF {
+    label 'generic'
 
     tag {sample_id}
 
@@ -262,6 +274,7 @@ process CLEAN_PAF {
 }
 
 process SAM2LCA {
+    label 'generic'
 
     tag {sample_id}
 
@@ -284,6 +297,8 @@ process SAM2LCA {
 }
 
 process PARSING_PAF {
+    label 'report'
+
     publishDir "${params.outdir}/report", mode: "copy"
 
     tag {sample_id}
@@ -308,6 +323,8 @@ process PARSING_PAF {
 }
 
 process CREATE_EXCEL_REPORT {
+    label 'renv'
+
     publishDir "${params.outdir}", mode: "copy"
 
     conda projectDir +  '/env/conda-r.yml'

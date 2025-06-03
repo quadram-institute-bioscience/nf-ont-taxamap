@@ -6,6 +6,7 @@ import gzip
 from ete3 import NCBITaxa
 import pandas as pd
 
+DBFILE = "/qib/platforms/Informatics/transfer/outgoing/databases/etetoolkit/taxa.sqlite"
 
 class Alignment(object):
     """
@@ -84,9 +85,11 @@ def write_taxonomy_report(file_name, collection):
         logger.error(e)
 
 
-def write_metaphlan_like_report(file_name, report_file):
+def write_metaphlan_like_report(file_name, report_file, dbfile=None):
+    if dbfile is None:
+        dbfile = DBFILE
     try:
-        ncbi = NCBITaxa()
+        ncbi = NCBITaxa(dbfile=dbfile)
         report = pd.read_csv(report_file)
         taxonomy = [
             "kingdom",
@@ -138,8 +141,10 @@ def swap_rank_dict(rank_dict: dict()):
     return _rank
 
 
-def print_taxid(taxid):
-    ncbi = NCBITaxa()
+def print_taxid(taxid, dbfile=None):
+    if dbfile is None:
+        dbfile = DBFILE
+    ncbi = NCBITaxa(dbfile)
     lineage = ncbi.get_lineage(taxid)
     lineage_name = ncbi.get_taxid_translator(lineage)
     rank = ncbi.get_rank(lineage)
@@ -167,8 +172,10 @@ def print_taxid(taxid):
     return _taxonomy
 
 
-def print_metaphlan_like_report(taxid):
-    ncbi = NCBITaxa()
+def print_metaphlan_like_report(taxid, dbfile=None):
+    if dbfile is None:
+        dbfile = DBFILE
+    ncbi = NCBITaxa(dbfile)
     lineage = ncbi.get_lineage(taxid)
     lineage_name = ncbi.get_taxid_translator(lineage)
     rank = ncbi.get_rank(lineage)
@@ -205,7 +212,8 @@ def print_metaphlan_like_report(taxid):
 @click.option('--output', '-o', help="Output name", required=True)
 @click.option('--min_read_length', '-l', help="Min read length", default=100)
 @click.option('--score', '-c', help="Score threshold to exclude false positive classification [score = 2*(coverage*identity)/(coverage+identity)*100]", default=35.0)
-def main(min_read_length, score, paf_file, output=None):
+@click.option('--dbfile', '-d', help="Etetoolkit taxa db file", default="/qib/platforms/Informatics/transfer/outgoing/databases/etetoolkit/taxa.sqlite")
+def main(min_read_length, score, paf_file, dbfile, output=None):
     """
     Parsing a paf file into a readable taxonomy ID format \n
     thanh.le-viet@quadram.ac.uk
@@ -267,10 +275,9 @@ def main(min_read_length, score, paf_file, output=None):
 
             logger.info("Writing report")
             write_taxonomy_report(f"{output}_report.csv", _sum_taxonomy)
-
             logger.info("Writing metaphlan-like-report")
             write_metaphlan_like_report(
-                f"{output}_metaphlan_report.csv", f"{output}_report.csv")
+                f"{output}_metaphlan_report.csv", f"{output}_report.csv", dbfile=dbfile)
 
     except IOError:
         logger.error("Could not open paf file")
