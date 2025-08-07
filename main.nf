@@ -21,6 +21,7 @@ process CONCATENATE {
 
     conda projectDir + '/env/conda-env.yml'
 
+
     cpus 4
 
     input:
@@ -134,8 +135,6 @@ process DEHUMAN2 {
 
     cpus 6
 
-    memory '12.GB'
-
     input:
         tuple val(sample_id), path(reads)
 
@@ -147,6 +146,13 @@ process DEHUMAN2 {
     args = task.ext.args ?: ''
     """
     minimap2 -ax map-ont $args -t $task.cpus $params.human_ref $reads | samtools view -Sb - > mapped.bam
+    
+    # Check if mapped.bam is empty or corrupted
+    if [ ! -s mapped.bam ]; then
+        echo "ERROR: BAM file is empty or corrupted"
+        exit 1
+    fi
+    
     samtools flagstat mapped.bam > ${sample_id}.flagstat
     samtools fastq -f 4 mapped.bam | pigz - > ${sample_id}.non_host.fastq.gz
     """
@@ -451,8 +457,8 @@ workflow {
     // }
 
     // Collects all items from the channel `ch_report` and returns them as a list
-    ch_report = ch_report.collect()
-    CREATE_EXCEL_REPORT(ch_report)
+
+    CREATE_EXCEL_REPORT(ch_report.collect())
 }
 
 workflow.onComplete {
