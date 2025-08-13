@@ -150,7 +150,7 @@ def print_taxid(taxid, dbfile=None):
     rank = ncbi.get_rank(lineage)
     rank = swap_rank_dict(rank)
 
-    taxonomy_rank = ["superkingdom",
+    taxonomy_rank = ["domain",
                     "kingdom",
                     "phylum",
                     "class",
@@ -166,8 +166,8 @@ def print_taxid(taxid, dbfile=None):
         if taxon in rank.keys():
             _value = lineage_name[rank[taxon]]
             if taxon == "kingdom" and _value != "Fungi":
-                _value = lineage_name[rank["superkingdom"]]
-        if taxon != "superkingdom":
+                _value = lineage_name[rank["domain"]]
+        if taxon != "domain":
             _taxonomy[taxon] = _value
     return _taxonomy
 
@@ -182,7 +182,7 @@ def print_metaphlan_like_report(taxid, dbfile=None):
     rank = swap_rank_dict(rank)
 
     taxonomy_rank_dict = {
-        "superkingdom": "k__",
+        "domain": "k__",
         "kingdom": "k__",
         "phylum": "p__",
         "class": "c__",
@@ -200,8 +200,8 @@ def print_metaphlan_like_report(taxid, dbfile=None):
             # logger.info(f"{taxon} - {lineage_name[rank[taxon]]}")
             # logger.info(f"{taxon}-{_value}")
             if taxon == "kingdom" and _value != "Fungi":
-                _value = f"{taxonomy_rank_dict['superkingdom']}{lineage_name[rank['superkingdom']]}"
-        if taxon != "superkingdom":
+                _value = f"{taxonomy_rank_dict['domain']}{lineage_name[rank['domain']]}"
+        if taxon != "domain":
             _taxonomy[taxon] = _value
             _value = ""
     return _taxonomy
